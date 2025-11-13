@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: ComicBagi
-  description: PHP Symfony-based comic hosting catalog full-stack.
+  description: Comic hosting catalog provider.
   license:
     name: Mozilla Public License 2.0
     url: https://spdx.org/licenses/MPL-2.0.html
@@ -40,7 +40,25 @@ paths:
             type: array
             items:
               type: string
-        - name: destinationLink
+        - name: providerLinkWebsiteHost
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: providerLinkRelativeReference
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: providerLinkHREF
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: providerLanguageLang
           in: query
           schema:
             type: array
@@ -163,12 +181,12 @@ paths:
           $ref: '#/components/responses/Default'
       security:
         - BearerAuth: []
-  /rest/comics/{comicCode}/destination-links:
+  /rest/comics/{comicCode}/providers:
     get:
       tags:
         - Comic
-      summary: List comic destination link.
-      operationId: listComicDestinationLink
+      summary: List comic provider.
+      operationId: listComicProvider
       parameters:
         - name: comicCode
           in: path
@@ -211,9 +229,21 @@ paths:
             type: array
             items:
               type: string
+        - name: languageLang
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: unredact
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
       responses:
         '200':
-          description: Comic destination link list.
+          description: Comic provider list.
           headers:
             X-Total-Count:
               schema:
@@ -226,14 +256,14 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ComicDestinationLink'
+                  $ref: '#/components/schemas/ComicProvider'
         default:
           $ref: '#/components/responses/Default'
     post:
       tags:
         - Comic
-      summary: Add comic destination link.
-      operationId: addComicDestinationLink
+      summary: Add comic provider.
+      operationId: addComicProvider
       parameters:
         - name: comicCode
           in: path
@@ -244,11 +274,11 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NewComicDestinationLink'
+              $ref: '#/components/schemas/NewComicProvider'
         required: true
       responses:
         '201':
-          description: Comic destination link added.
+          description: Comic provider added.
           headers:
             Location:
               schema:
@@ -256,17 +286,17 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ComicDestinationLink'
+                $ref: '#/components/schemas/ComicProvider'
         default:
           $ref: '#/components/responses/Default'
       security:
         - BearerAuth: []
-  /rest/comics/{comicCode}/destination-links/{ulid}:
+  /rest/comics/{comicCode}/providers/{ulid}:
     get:
       tags:
         - Comic
-      summary: Get comic destination link.
-      operationId: getComicDestinationLink
+      summary: Get comic provider.
+      operationId: getComicProvider
       parameters:
         - name: comicCode
           in: path
@@ -280,18 +310,18 @@ paths:
             type: string
       responses:
         '200':
-          description: Comic destination link gets.
+          description: Comic provider gets.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ComicDestinationLink'
+                $ref: '#/components/schemas/ComicProvider'
         default:
           $ref: '#/components/responses/Default'
     patch:
       tags:
         - Comic
-      summary: Update comic destination link.
-      operationId: updateComicDestinationLink
+      summary: Update comic provider.
+      operationId: updateComicProvider
       parameters:
         - name: comicCode
           in: path
@@ -307,11 +337,11 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SetComicDestinationLink'
+              $ref: '#/components/schemas/SetComicProvider'
         required: true
       responses:
         '200':
-          description: Comic destination link updated.
+          description: Comic provider updated.
           headers:
             Location:
               schema:
@@ -319,9 +349,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ComicDestinationLink'
+                $ref: '#/components/schemas/ComicProvider'
         '204':
-          description: Comic destination link unmodified.
+          description: Comic provider unmodified.
         default:
           $ref: '#/components/responses/Default'
       security:
@@ -329,8 +359,8 @@ paths:
     delete:
       tags:
         - Comic
-      summary: Delete comic destination link.
-      operationId: deleteComicDestinationLink
+      summary: Delete comic provider.
+      operationId: deleteComicProvider
       parameters:
         - name: comicCode
           in: path
@@ -344,7 +374,7 @@ paths:
             type: string
       responses:
         '204':
-          description: Comic destination link deleted.
+          description: Comic provider deleted.
         default:
           $ref: '#/components/responses/Default'
       security:
@@ -379,7 +409,25 @@ paths:
             type: array
             items:
               type: string
-        - name: destinationLink
+        - name: providerLinkWebsiteHost
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: providerLinkRelativeReference
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: providerLinkHREF
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: providerLanguageLang
           in: query
           schema:
             type: array
@@ -526,12 +574,12 @@ paths:
           $ref: '#/components/responses/Default'
       security:
         - BearerAuth: []
-  /rest/comics/{comicCode}/chapters/{chapterNV}/destination-links:
+  /rest/comics/{comicCode}/chapters/{chapterNV}/providers:
     get:
       tags:
         - Comic Chapter
-      summary: List comic chapter destination link.
-      operationId: listComicChapterDestinationLink
+      summary: List comic chapter properties.
+      operationId: listComicChapterProvider
       parameters:
         - name: comicCode
           in: path
@@ -580,9 +628,21 @@ paths:
             type: array
             items:
               type: string
+        - name: languageLang
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: unredact
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
       responses:
         '200':
-          description: Comic destination link list.
+          description: Comic provider list.
           headers:
             X-Total-Count:
               schema:
@@ -595,14 +655,14 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ComicChapterDestinationLink'
+                  $ref: '#/components/schemas/ComicChapterProvider'
         default:
           $ref: '#/components/responses/Default'
     post:
       tags:
         - Comic Chapter
-      summary: Add comic chapter destination link.
-      operationId: addComicChapterDestinationLink
+      summary: Add comic chapter provider.
+      operationId: addComicChapterProvider
       parameters:
         - name: comicCode
           in: path
@@ -619,11 +679,11 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NewComicChapterDestinationLink'
+              $ref: '#/components/schemas/NewComicChapterProvider'
         required: true
       responses:
         '201':
-          description: Comic chapter destination link added.
+          description: Comic chapter provider added.
           headers:
             Location:
               schema:
@@ -631,17 +691,17 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ComicChapterDestinationLink'
+                $ref: '#/components/schemas/ComicChapterProvider'
         default:
           $ref: '#/components/responses/Default'
       security:
         - BearerAuth: []
-  /rest/comics/{comicCode}/chapters/{chapterNV}/destination-links/{ulid}:
+  /rest/comics/{comicCode}/chapters/{chapterNV}/providers/{ulid}:
     get:
       tags:
         - Comic Chapter
-      summary: Get comic chapter destination link.
-      operationId: getComicChapterDestinationLink
+      summary: Get comic chapter provider.
+      operationId: getComicChapterProvider
       parameters:
         - name: comicCode
           in: path
@@ -661,18 +721,18 @@ paths:
             type: string
       responses:
         '200':
-          description: Comic chapter destination link gets.
+          description: Comic chapter provider gets.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ComicChapterDestinationLink'
+                $ref: '#/components/schemas/ComicChapterProvider'
         default:
           $ref: '#/components/responses/Default'
     patch:
       tags:
         - Comic Chapter
-      summary: Update comic chapter destination link.
-      operationId: updateComicChapterDestinationLink
+      summary: Update comic chapter provider.
+      operationId: updateComicChapterProvider
       parameters:
         - name: comicCode
           in: path
@@ -694,11 +754,11 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SetComicChapterDestinationLink'
+              $ref: '#/components/schemas/SetComicChapterProvider'
         required: true
       responses:
         '200':
-          description: Comic chapter destination link updated.
+          description: Comic chapter provider updated.
           headers:
             Location:
               schema:
@@ -706,9 +766,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ComicChapterDestinationLink'
+                $ref: '#/components/schemas/ComicChapterProvider'
         '204':
-          description: Comic chapter destination link unmodified.
+          description: Comic chapter provider unmodified.
         default:
           $ref: '#/components/responses/Default'
       security:
@@ -716,8 +776,8 @@ paths:
     delete:
       tags:
         - Comic Chapter
-      summary: Delete comic chapter destination link.
-      operationId: deleteComicChapterDestinationLink
+      summary: Delete comic chapter provider.
+      operationId: deleteComicChapterProvider
       parameters:
         - name: comicCode
           in: path
@@ -737,7 +797,7 @@ paths:
             type: string
       responses:
         '204':
-          description: Comic chapter destination link deleted.
+          description: Comic chapter provider deleted.
         default:
           $ref: '#/components/responses/Default'
       security:
@@ -909,6 +969,12 @@ paths:
             type: array
             items:
               type: string
+        - name: unredact
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
       responses:
         '200':
           description: Website list.
@@ -1026,174 +1092,6 @@ paths:
           $ref: '#/components/responses/Default'
       security:
         - BearerAuth: []
-  /rest/websites/{websiteHost}/item-languages:
-    get:
-      tags:
-        - Website
-      summary: List website item language.
-      operationId: listWebsiteItemLanguage
-      parameters:
-        - name: websiteHost
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: page
-          in: query
-          schema:
-            type: integer
-        - name: limit
-          in: query
-          schema:
-            type: integer
-        - name: order
-          in: query
-          schema:
-            type: string
-        - name: orderBy
-          in: query
-          schema:
-            type: array
-            items:
-              type: string
-      responses:
-        '200':
-          description: Website item language list.
-          headers:
-            X-Total-Count:
-              schema:
-                type: integer
-            X-Pagination-Limit:
-              schema:
-                type: integer
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/WebsiteItemLanguage'
-        default:
-          $ref: '#/components/responses/Default'
-    post:
-      tags:
-        - Website
-      summary: Add website item language.
-      operationId: addWebsiteItemLanguage
-      parameters:
-        - name: websiteHost
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/NewWebsiteItemLanguage'
-        required: true
-      responses:
-        '201':
-          description: Website item language added.
-          headers:
-            Location:
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WebsiteItemLanguage'
-        default:
-          $ref: '#/components/responses/Default'
-      security:
-        - BearerAuth: []
-  /rest/websites/{websiteHost}/item-languages/{lang}:
-    get:
-      tags:
-        - Website
-      summary: Get website item language.
-      operationId: getWebsiteItemLanguage
-      parameters:
-        - name: websiteHost
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: lang
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Website item language gets.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WebsiteItemLanguage'
-        default:
-          $ref: '#/components/responses/Default'
-    patch:
-      tags:
-        - Website
-      summary: Update website item language.
-      operationId: updateWebsiteItemLanguage
-      parameters:
-        - name: websiteHost
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: lang
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SetWebsiteItemLanguage'
-        required: true
-      responses:
-        '200':
-          description: Website item language updated.
-          headers:
-            Location:
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WebsiteItemLanguage'
-        '204':
-          description: Website item language unmodified.
-        default:
-          $ref: '#/components/responses/Default'
-      security:
-        - BearerAuth: []
-    delete:
-      tags:
-        - Website
-      summary: Delete website item language.
-      operationId: deleteWebsiteItemLanguage
-      parameters:
-        - name: websiteHost
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: lang
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '204':
-          description: Website item language deleted.
-        default:
-          $ref: '#/components/responses/Default'
-      security:
-        - BearerAuth: []
   /rest/links:
     get:
       tags:
@@ -1232,6 +1130,12 @@ paths:
             items:
               type: string
         - name: href
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+        - name: unredact
           in: query
           schema:
             type: array
@@ -1354,174 +1258,6 @@ paths:
           $ref: '#/components/responses/Default'
       security:
         - BearerAuth: []
-  /rest/links/{linkHref}/item-languages:
-    get:
-      tags:
-        - Link
-      summary: List link item language.
-      operationId: listLinkItemLanguage
-      parameters:
-        - name: linkHref
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: page
-          in: query
-          schema:
-            type: integer
-        - name: limit
-          in: query
-          schema:
-            type: integer
-        - name: order
-          in: query
-          schema:
-            type: string
-        - name: orderBy
-          in: query
-          schema:
-            type: array
-            items:
-              type: string
-      responses:
-        '200':
-          description: Link item language list.
-          headers:
-            X-Total-Count:
-              schema:
-                type: integer
-            X-Pagination-Limit:
-              schema:
-                type: integer
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/LinkItemLanguage'
-        default:
-          $ref: '#/components/responses/Default'
-    post:
-      tags:
-        - Link
-      summary: Add link item language.
-      operationId: addLinkItemLanguage
-      parameters:
-        - name: linkHref
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/NewLinkItemLanguage'
-        required: true
-      responses:
-        '201':
-          description: Link item language added.
-          headers:
-            Location:
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/LinkItemLanguage'
-        default:
-          $ref: '#/components/responses/Default'
-      security:
-        - BearerAuth: []
-  /rest/links/{linkHref}/item-languages/{lang}:
-    get:
-      tags:
-        - Link
-      summary: Get link item language.
-      operationId: getLinkItemLanguage
-      parameters:
-        - name: linkHref
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: lang
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Link item language gets.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/LinkItemLanguage'
-        default:
-          $ref: '#/components/responses/Default'
-    patch:
-      tags:
-        - Link
-      summary: Update link item language.
-      operationId: updateLinkItemLanguage
-      parameters:
-        - name: linkHref
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: lang
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SetLinkItemLanguage'
-        required: true
-      responses:
-        '200':
-          description: Link item language updated.
-          headers:
-            Location:
-              schema:
-                type: string
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/LinkItemLanguage'
-        '204':
-          description: Link item language unmodified.
-        default:
-          $ref: '#/components/responses/Default'
-      security:
-        - BearerAuth: []
-    delete:
-      tags:
-        - Link
-      summary: Delete link item language.
-      operationId: deleteLinkItemLanguage
-      parameters:
-        - name: linkHref
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: lang
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '204':
-          description: Link item language deleted.
-        default:
-          $ref: '#/components/responses/Default'
-      security:
-        - BearerAuth: []
 components:
   schemas:
     Comic:
@@ -1536,14 +1272,15 @@ components:
           nullable: true
         code:
           type: string
-        destinationLinkCount:
+        providerCount:
           type: integer
         chapterCount:
           type: integer
       required:
         - createdAt
+        - updatedAt
         - code
-        - destinationLinkCount
+        - providerCount
         - chapterCount
     NewComic:
       type: object
@@ -1558,7 +1295,7 @@ components:
         code:
           type: string
           nullable: true
-    ComicDestinationLink:
+    ComicProvider:
       type: object
       properties:
         createdAt:
@@ -1575,7 +1312,11 @@ components:
           type: string
         linkWebsiteName:
           type: string
+        linkWebsiteRedacted:
+          type: boolean
         linkRelativeReference:
+          type: string
+        languageLang:
           type: string
           nullable: true
         releasedAt:
@@ -1584,15 +1325,23 @@ components:
           nullable: true
       required:
         - createdAt
+        - updatedAt
         - ulid
         - linkWebsiteHost
         - linkWebsiteName
-    NewComicDestinationLink:
+        - linkWebsiteRedacted
+        - linkRelativeReference
+        - languageLang
+        - releasedAt
+    NewComicProvider:
       type: object
       properties:
         linkWebsiteHost:
           type: string
         linkRelativeReference:
+          type: string
+          nullable: true
+        languageLang:
           type: string
           nullable: true
         releasedAt:
@@ -1601,13 +1350,16 @@ components:
           nullable: true
       required:
         - linkWebsiteHost
-    SetComicDestinationLink:
+    SetComicProvider:
       type: object
       properties:
         linkWebsiteHost:
           type: string
           nullable: true
         linkRelativeReference:
+          type: string
+          nullable: true
+        languageLang:
           type: string
           nullable: true
         releasedAt:
@@ -1628,13 +1380,14 @@ components:
           type: number
         version:
           type: string
-          nullable: true
-        destinationLinkCount:
+        providerCount:
           type: integer
       required:
         - createdAt
+        - updatedAt
         - number
-        - destinationLinkCount
+        - version
+        - providerCount
     NewComicChapter:
       type: object
       properties:
@@ -1654,7 +1407,7 @@ components:
         version:
           type: string
           nullable: true
-    ComicChapterDestinationLink:
+    ComicChapterProvider:
       type: object
       properties:
         createdAt:
@@ -1671,7 +1424,11 @@ components:
           type: string
         linkWebsiteName:
           type: string
+        linkWebsiteRedacted:
+          type: boolean
         linkRelativeReference:
+          type: string
+        languageLang:
           type: string
           nullable: true
         releasedAt:
@@ -1680,15 +1437,23 @@ components:
           nullable: true
       required:
         - createdAt
+        - updatedAt
         - ulid
         - linkWebsiteHost
         - linkWebsiteName
-    NewComicChapterDestinationLink:
+        - linkWebsiteRedacted
+        - linkRelativeReference
+        - languageLang
+        - releasedAt
+    NewComicChapterProvider:
       type: object
       properties:
         linkWebsiteHost:
           type: string
         linkRelativeReference:
+          type: string
+          nullable: true
+        languageLang:
           type: string
           nullable: true
         releasedAt:
@@ -1697,13 +1462,16 @@ components:
           nullable: true
       required:
         - linkWebsiteHost
-    SetComicChapterDestinationLink:
+    SetComicChapterProvider:
       type: object
       properties:
         linkWebsiteHost:
           type: string
           nullable: true
         linkRelativeReference:
+          type: string
+          nullable: true
+        languageLang:
           type: string
           nullable: true
         releasedAt:
@@ -1726,6 +1494,7 @@ components:
           type: string
       required:
         - createdAt
+        - updatedAt
         - lang
         - name
     NewLanguage:
@@ -1761,15 +1530,17 @@ components:
           type: string
         name:
           type: string
-        itemLanguageCount:
-          type: integer
+          nullable: true
+        redacted:
+          type: boolean
         linkCount:
           type: integer
       required:
         - createdAt
+        - updatedAt
         - host
         - name
-        - itemLanguageCount
+        - redacted
         - linkCount
     NewWebsite:
       type: object
@@ -1778,9 +1549,12 @@ components:
           type: string
         name:
           type: string
+          nullable: true
+        redacted:
+          type: boolean
+          nullable: true
       required: 
         - host
-        - name
     SetWebsite:
       type: object
       properties:
@@ -1790,42 +1564,8 @@ components:
         name:
           type: string
           nullable: true
-    WebsiteItemLanguage:
-      type: object
-      properties:
-        createdAt:
-          type: string
-          format: date-time
-        updatedAt:
-          type: string
-          format: date-time
-          nullable: true
-        languageLang:
-          type: string
-        machineTranslate:
-          type: integer
-          nullable: true
-      required:
-        - createdAt
-        - languageLang
-    NewWebsiteItemLanguage:
-      type: object
-      properties:
-        languageLang:
-          type: string
-        machineTranslate:
-          type: integer
-          nullable: true
-      required:
-        - languageLang
-    SetWebsiteItemLanguage:
-      type: object
-      properties:
-        languageLang:
-          type: string
-          nullable: true
-        machineTranslate:
-          type: integer
+        redacted:
+          type: boolean
           nullable: true
     Link:
       type: object
@@ -1841,16 +1581,18 @@ components:
           type: string
         websiteName:
           type: string
+          nullable: true
+        websiteRedacted:
+          type: boolean
         relativeReference:
           type: string
-          nullable: true
-        itemLanguageCount:
-          type: integer
       required:
         - createdAt
+        - updatedAt
         - websiteHost
         - websiteName
-        - itemLanguageCount
+        - websiteRedacted
+        - relativeReference
     NewLink:
       type: object
       properties:
@@ -1869,43 +1611,6 @@ components:
           nullable: true
         relativeReference:
           type: string
-          nullable: true
-    LinkItemLanguage:
-      type: object
-      properties:
-        createdAt:
-          type: string
-          format: date-time
-        updatedAt:
-          type: string
-          format: date-time
-          nullable: true
-        languageLang:
-          type: string
-        machineTranslate:
-          type: integer
-          nullable: true
-      required:
-        - createdAt
-        - languageLang
-    NewLinkItemLanguage:
-      type: object
-      properties:
-        languageLang:
-          type: string
-        machineTranslate:
-          type: integer
-          nullable: true
-      required:
-        - languageLang
-    SetLinkItemLanguage:
-      type: object
-      properties:
-        languageLang:
-          type: string
-          nullable: true
-        machineTranslate:
-          type: integer
           nullable: true
     Error:
       type: object

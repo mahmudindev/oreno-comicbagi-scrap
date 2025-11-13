@@ -23,7 +23,11 @@ class Bot:
         logger: logging.Logger,
         note_file: TextIOWrapper | None = None
     ):
-        self.client = comicbagi_openapi.ApiClient(configuration=comicbagi_openapi.Configuration(host=base_comicbagi))
+        self.client = comicbagi_openapi.ApiClient(
+            configuration=comicbagi_openapi.Configuration(
+                host=base_comicbagi
+            )
+        )
 
         self.oauth_issuer = oauth_issuer
         self.oauth_client_id = oauth_client_id
@@ -146,14 +150,16 @@ class Bot:
     def add_website(
         self,
         host: str,
-        name: str
+        name: str,
+        redacted: bool | None = None
     ):
         api = comicbagi_openapi.WebsiteApi(self.client)
 
         result = api.add_website(
             new_website=comicbagi_openapi.NewWebsite(
                 host=host,
-                name=name
+                name=name,
+                redacted=redacted
             )
         )
 
@@ -161,29 +167,6 @@ class Bot:
             self.websites.append(host)
 
         self.logger.info('Website "%s" added', host)
-
-        return result
-
-    def add_website_item_language(
-        self,
-        website_host: str,
-        language_lang: str,
-        machine_translate: int | None = None
-    ):
-        api = comicbagi_openapi.WebsiteApi(self.client)
-
-        result = api.add_website_item_language(
-            website_host,
-            new_website_item_language=comicbagi_openapi.NewWebsiteItemLanguage(
-                languageLang=language_lang,
-                machineTranslate=machine_translate
-            )
-        )
-
-        self.logger.info(
-            'Website "%s" Item Language "%s" added',
-            website_host, language_lang
-        )
 
         return result
 
@@ -205,29 +188,6 @@ class Bot:
 
         return result
 
-    def add_link_item_language(
-        self,
-        link_href: str,
-        language_lang: str,
-        machine_translate: int | None = None
-    ):
-        api = comicbagi_openapi.LinkApi(self.client)
-
-        result = api.add_link_item_language(
-            link_href,
-            new_link_item_language=comicbagi_openapi.NewLinkItemLanguage(
-                languageLang=language_lang,
-                machineTranslate=machine_translate
-            )
-        )
-
-        self.logger.info(
-            'Link "%s" Item Language "%s" added',
-            link_href, language_lang
-        )
-
-        return result
-
     def add_comic(
         self,
         code: str
@@ -244,26 +204,28 @@ class Bot:
 
         return result
 
-    def add_comic_destinaton_link(
+    def add_comic_provider(
         self,
         comic_code: str,
         link_website_host: str,
         link_relative_reference: str | None = None,
+        languageLang: str | None = None,
         released_at: datetime | None = None
     ):
         api = comicbagi_openapi.ComicApi(self.client)
 
-        result = api.add_comic_destination_link(
+        result = api.add_comic_provider(
             comic_code,
-            new_comic_destination_link=comicbagi_openapi.NewComicDestinationLink(
+            new_comic_provider=comicbagi_openapi.NewComicProvider(
                 linkWebsiteHost=link_website_host,
                 linkRelativeReference=link_relative_reference,
+                languageLang=languageLang,
                 releasedAt=released_at
             )
         )
 
         self.logger.info(
-            'Comic "%s" Destination Link "%s" added',
+            'Comic "%s" Provider "%s" added',
             comic_code, f'{link_website_host}{link_relative_reference}'
         )
 
@@ -295,28 +257,30 @@ class Bot:
 
         return result
 
-    def add_comic_chapter_destinaton_link(
+    def add_comic_chapter_provider(
         self,
         comic_code: str,
         chapter_nv: str,
         link_website_host: str,
         link_relative_reference: str | None = None,
+        languageLang: str | None = None,
         released_at: datetime | None = None
     ):
         api = comicbagi_openapi.ComicChapterApi(self.client)
 
-        result = api.add_comic_chapter_destination_link(
+        result = api.add_comic_chapter_provider(
             comic_code,
             chapter_nv,
-            new_comic_chapter_destination_link=comicbagi_openapi.NewComicChapterDestinationLink(
+            new_comic_chapter_provider=comicbagi_openapi.NewComicChapterProvider(
                 linkWebsiteHost=link_website_host,
                 linkRelativeReference=link_relative_reference,
+                languageLang=languageLang,
                 releasedAt=released_at
             )
         )
 
         self.logger.info(
-            'Comic "%s" Chapter "%s" Destination Link "%s" added',
+            'Comic "%s" Chapter "%s" Provider "%s" added',
             comic_code, chapter_nv, f'{link_website_host}{link_relative_reference}'
         )
 

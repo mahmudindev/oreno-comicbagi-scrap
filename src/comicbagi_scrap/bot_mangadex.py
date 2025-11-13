@@ -25,8 +25,6 @@ class BotMangaDex:
 
         self.comicking_jikan_bot = comicking_jikan_bot
 
-        self.item_languages: list[str] = []
-
         self.logger = logger
 
     def load(self, seeding: bool = True):
@@ -46,58 +44,11 @@ class BotMangaDex:
                 self.bot.websites.append(self.website_mangadex_host)
             except comicbagi_openapi.ApiException as e:
                 if seeding and e.status == 404:
-                    self.bot.add_website(self.website_mangadex_host, 'MangaDex')
+                    self.bot.add_website(self.website_mangadex_host, 'MangaDex', True)
 
                     time.sleep(2)
                 else:
                     raise e
-
-        item_language_page = 1
-        while True:
-            response0 = api0.list_website_item_language_with_http_info(
-                self.website_mangadex_host,
-                page=item_language_page,
-                limit=15
-            )
-
-            if not response0.data:
-                break
-
-            for item_language in response0.data:
-                self.item_languages.append(item_language.language_lang)
-
-            item_language_total_count = 0
-
-            if response0.headers:
-                for k, v in response0.headers.items():
-                    if k.lower() == 'x-total-count':
-                        item_language_total_count = int(v)
-                        break
-
-            if len(self.item_languages) >= item_language_total_count:
-                break
-
-            time.sleep(1)
-            item_language_page += 1
-
-        if seeding:
-            item_languages = {
-                self.bot.language_english_lang: 0,
-                self.bot.language_indonesian_lang: 0
-            }
-            for k, v in item_languages.items():
-                if k in self.item_languages:
-                    continue
-
-                self.bot.add_website_item_language(
-                    self.website_mangadex_host,
-                    k,
-                    v
-                )
-
-                self.item_languages.append(k)
-
-                time.sleep(2)
 
     def note(self, __lines: Iterable[str] | None = None):
         if __lines:
@@ -126,24 +77,34 @@ class BotMangaDex:
         if not manga.id:
             return comic_code, comic_exist
 
-        api0 = comicbagi_openapi.ComicApi(self.bot.client)
+        manga_attributes = manga.attributes
 
-        response0 = api0.list_comic(
-            destination_link=[quote(f'linkHREF={self.website_mangadex_host}/title/{manga.id}')]
-        )
+        if not manga_attributes or not manga_attributes.available_translated_languages:
+            return comic_code, comic_exist
+
+        manga_language_supported = False
+
+        for manga_language in manga_attributes.available_translated_languages:
+            if manga_language in self.bot.languages:
+                manga_language_supported = True
+                break
+
+        if not manga_language_supported:
+            return comic_code, comic_exist
 
         self.bot.authenticate()
 
         # Comic
 
+        api0 = comicbagi_openapi.ComicApi(self.bot.client)
+
+        response0 = api0.list_comic(
+            provider_link_href=[quote(f'{self.website_mangadex_host}/title/{manga.id}')]
+        )
+
         api1 = comicbagi_openapi.LinkApi(self.bot.client)
 
         if len(response0) < 1:
-            manga_attributes = manga.attributes
-
-            if not manga_attributes:
-                return comic_code, comic_exist
-
             if manga_attributes.links:
                 for k, v in manga_attributes.links.items():
                     if comic_code:
@@ -177,7 +138,7 @@ class BotMangaDex:
                 else:
                     raise e
 
-            # Comic Destinaton Link
+            # Comic Provider
 
             comic_link = f'{self.website_mangadex_host}/title/{manga.id}'
 
@@ -191,39 +152,30 @@ class BotMangaDex:
                 else:
                     raise e
 
-            if manga_attributes.available_translated_languages:
-                for comic_link_item_language in manga_attributes.available_translated_languages:
-                    if comic_link_item_language not in self.item_languages:
-                        continue
+            response01 = api0.list_comic_provider(comic_code, link_href=[quote(comic_link)])
 
-                    try:
-                        api1.get_link_item_language(comic_link, comic_link_item_language)
-                    except comicbagi_openapi.ApiException as e:
-                        if e.status == 404:
-                            self.bot.add_link_item_language(
-                                comic_link,
-                                comic_link_item_language,
-                                machine_translate=0
-                            )
+            for manga_language in manga_attributes.available_translated_languages:
+                if manga_language not in self.bot.languages:
+                    continue
 
-                            time.sleep(2)
-                        else:
-                            raise e
+                comic_provider_exist = False
+                for comic_provider in response01:
+                    if manga_language == comic_provider.language_lang:
+                        comic_provider_exist = True
+                        break
 
-            response02 = api0.list_comic_destination_link(
-                comic_code,
-                link_href=[quote(comic_link)]
-            )
-            if len(response02) < 1:
+                if comic_provider_exist:
+                    continue
+
                 comic_released_at = datetime.now()
-
                 if manga_attributes.created_at:
                     comic_released_at = datetime.fromisoformat(manga_attributes.created_at)
 
-                self.bot.add_comic_destinaton_link(
+                self.bot.add_comic_provider(
                     comic_code,
                     self.website_mangadex_host,
                     f'/title/{manga.id}',
+                    manga_language,
                     comic_released_at
                 )
 
@@ -239,9 +191,17 @@ class BotMangaDex:
     def __manga_chapter(self, comic_code: str, chapter: mangadex_openapi.Chapter):
         chapter_nv, chapter_exist = None, False
 
+        if not chapter.id:
+            return chapter_nv, chapter_exist
+
         chapter_attributes = chapter.attributes
 
-        if not chapter.id or not chapter_attributes or not chapter_attributes.chapter:
+        if not chapter_attributes or not chapter_attributes.chapter:
+            return chapter_nv, chapter_exist
+
+        chapter_language = chapter_attributes.translated_language
+
+        if not chapter_language or chapter_language not in self.bot.languages:
             return chapter_nv, chapter_exist
 
         api0 = comicbagi_openapi.ComicChapterApi(self.bot.client)
@@ -275,10 +235,7 @@ class BotMangaDex:
 
         chapter_nv = str(chapter_number)
 
-        # Chapter Destination Link
-
-        if chapter_attributes.translated_language not in self.item_languages:
-            return chapter_nv, chapter_exist
+        # Chapter Provider
 
         api1 = comicbagi_openapi.LinkApi(self.bot.client)
 
@@ -294,37 +251,30 @@ class BotMangaDex:
             else:
                 raise e
 
-        try:
-            api1.get_link_item_language(chapter_link, chapter_attributes.translated_language)
-        except comicbagi_openapi.ApiException as e:
-            if e.status == 404:
-                self.bot.add_link_item_language(
-                    chapter_link,
-                    chapter_attributes.translated_language,
-                    machine_translate=0
-                )
-
-                time.sleep(2)
-            else:
-                raise e
-
-        response = api0.list_comic_chapter_destination_link(
+        response = api0.list_comic_chapter_provider(
             comic_code,
             chapter_nv,
             link_href=[quote(chapter_link)]
         )
-        if len(response) < 1:
-            chapter_released_at = datetime.now()
 
+        chapter_provider_exist = False
+        for chapter_provider in response:
+            if chapter_attributes.translated_language == chapter_provider.language_lang:
+                chapter_provider_exist = True
+                break
+
+        if not chapter_provider_exist:
+            chapter_released_at = datetime.now()
             if chapter_attributes.created_at:
                 chapter_released_at = datetime.fromisoformat(chapter_attributes.created_at)
 
-            self.bot.add_comic_chapter_destinaton_link(
+            self.bot.add_comic_chapter_provider(
                 comic_code,
                 chapter_nv,
                 self.website_mangadex_host,
                 f'/chapter/{chapter.id}',
-                released_at=chapter_released_at
+                chapter_attributes.translated_language,
+                chapter_released_at
             )
 
             time.sleep(2)
@@ -386,7 +336,10 @@ class BotMangaDex:
 
                             self.note('Check MangaDex chapter ID %s' % comic_chapter.id)
 
-                            comic_chapter_nv, comic_chapter_exist = self.__manga_chapter(comic_code, comic_chapter)
+                            comic_chapter_nv, comic_chapter_exist = self.__manga_chapter(
+                                comic_code,
+                                comic_chapter
+                            )
 
                             self.note("MangaDex chapter ID %s check complete" % comic_chapter.id)
 
