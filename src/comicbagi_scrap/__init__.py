@@ -48,7 +48,8 @@ def main():
         logger=logger
     )
     bot_mangadex.process(
-        int(os.getenv('COMICBAGI_SCRAP_MAX_NEW_COMIC') or 1),
+        os.getenv('COMICBAGI_SCRAP_MODE') or 'comic',
+        int(os.getenv('COMICBAGI_SCRAP_MAX_NEW_COMIC') or 0),
         int(os.getenv('COMICBAGI_SCRAP_MAX_NEW_COMIC_CHAPTER') or 10)
     )
 

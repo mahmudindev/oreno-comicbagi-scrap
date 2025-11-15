@@ -57,7 +57,12 @@ class BotMangaDex:
 
         if self.bot.note_file: self.bot.note_file.writelines("\n")
 
-    def process(self, max_new_comic: int | None = None, max_new_comic_chapter: int | None = None):
+    def process(
+        self,
+        mode: str = 'comic',
+        max_new_comic: int | None = None,
+        max_new_comic_chapter: int | None = None
+    ):
         self.note('#')
         self.note('# Started time %s' % time.ctime())
         self.note('#')
@@ -65,7 +70,7 @@ class BotMangaDex:
 
         self.load(True)
 
-        self.scrap_comics_complete(max_new_comic, max_new_comic_chapter)
+        self.scrap_comics_complete(mode, max_new_comic, max_new_comic_chapter)
 
         self.note()
         self.note('# Stopped time %s' % time.ctime())
@@ -126,6 +131,7 @@ class BotMangaDex:
                             continue
 
             if not comic_code:
+                self.note('No information provider supported.')
                 return comic_code, comic_exist
 
             try:
@@ -281,9 +287,14 @@ class BotMangaDex:
 
         return chapter_nv, chapter_exist
 
-    def scrap_comics_complete(self, max_comic: int | None = None, max_comic_chapter: int | None = None):
+    def scrap_comics_complete(
+        self,
+        mode: str = 'comic',
+        max_comic: int | None = None,
+        max_comic_chapter: int | None = None
+    ):
         api1 = mangadex_openapi.MangaApi(self.client)
-        api2 = mangadex_openapi.MangaApi(self.client)
+        api2 = mangadex_openapi.ChapterApi(self.client)
 
         total_comic = 0
 
@@ -292,70 +303,126 @@ class BotMangaDex:
             if max_comic and total_comic > max_comic - 1:
                 break
 
-            response = api1.get_search_manga(
-                limit=10,
-                offset=(page-1)*10
-            )
-            if not response.data:
-                break
+            match mode:
+                case 'comic-chapter':
+                    response = api2.get_chapter(
+                        limit=30,
+                        offset=(page-1)*30,
+                        include_future_updates='0',
+                        include_empty_pages=0
+                    )
+                    if not response.data:
+                        break
 
-            for manga in response.data:
-                if max_comic and total_comic > max_comic - 1:
-                    break
-
-                if not manga.id:
-                    continue
-
-                self.note()
-                self.note('Check MangaDex manga ID %s' % manga.id)
-
-                comic_code, comic_exist = self.__manga(manga)
-
-                if comic_code:
-                    total_comic_chapter = 0
-
-                    page1 = 1
-                    while True:
-                        if max_comic_chapter and total_comic_chapter > max_comic_chapter - 1:
+                    for comic_chapter in response.data:
+                        if max_comic and total_comic > max_comic - 1:
                             break
 
-                        response1 = api2.get_manga_id_feed(
-                            manga.id,
-                            limit=50,
-                            offset=(page1-1)*50
-                        )
+                        if not comic_chapter.id:
+                            continue
+
+                        self.note()
+                        self.note('Check MangaDex chapter ID %s' % comic_chapter.id)
+
+                        manga_id = None
+                        if comic_chapter.relationships:
+                            for relationship in comic_chapter.relationships:
+                                if relationship.type == 'manga':
+                                    manga_id = relationship.id
+                                    break
+ 
+                        if not manga_id:
+                            continue
+
+                        self.note('Check MangaDex manga ID %s' % manga_id)
+
+                        response1 = api1.get_manga_id(manga_id)
                         if not response1.data:
-                            break
+                            continue
 
-                        for comic_chapter in response1.data:
-                            if max_comic_chapter and total_comic_chapter > max_comic_chapter - 1:
-                                break
-
-                            if not comic_chapter.id:
-                                continue
-
-                            self.note('Check MangaDex chapter ID %s' % comic_chapter.id)
-
-                            comic_chapter_nv, comic_chapter_exist = self.__manga_chapter(
-                                comic_code,
-                                comic_chapter
-                            )
-
-                            self.note("MangaDex chapter ID %s check complete" % comic_chapter.id)
-
-                            if comic_chapter_nv or not comic_chapter_exist:
-                                total_comic_chapter += 1
-                                time.sleep(5)
-
-                        page1 += 1
+                        comic_code, comic_exist = self.__manga(response1.data)
                         time.sleep(3)
 
-                self.note("MangaDex manga ID %s check complete" % manga.id)
-                self.note()
+                        self.note("MangaDex manga ID %s check complete" % manga_id)
 
-                if comic_code and not comic_exist:
-                    total_comic += 1
-                    time.sleep(5)
+                        if comic_code:
+                            self.__manga_chapter(comic_code, comic_chapter)
+
+                        self.note("MangaDex chapter ID %s check complete" % comic_chapter.id)
+                        self.note()
+
+                        if comic_code and not comic_exist:
+                            total_comic += 1
+                            time.sleep(5)
+                case _:
+                    response = api1.get_search_manga(
+                        limit=10,
+                        offset=(page-1)*10,
+                        has_available_chapters='1'
+                    )
+                    if not response.data:
+                        break
+
+                    for manga in response.data:
+                        if max_comic and total_comic > max_comic - 1:
+                            break
+
+                        if not manga.id:
+                            continue
+
+                        self.note()
+                        self.note('Check MangaDex manga ID %s' % manga.id)
+
+                        comic_code, comic_exist = self.__manga(manga)
+                        time.sleep(3)
+
+                        if comic_code:
+                            total_comic_chapter = 0
+
+                            page1 = 1
+                            while True:
+                                if max_comic_chapter and total_comic_chapter > max_comic_chapter - 1:
+                                    break
+
+                                response1 = api1.get_manga_id_feed(
+                                    manga.id,
+                                    limit=30,
+                                    offset=(page1-1)*30,
+                                    include_future_updates='0',
+                                    include_empty_pages=0
+                                )
+                                if not response1.data:
+                                    break
+
+                                for comic_chapter in response1.data:
+                                    if max_comic_chapter and total_comic_chapter > max_comic_chapter - 1:
+                                        break
+
+                                    if not comic_chapter.id:
+                                        continue
+
+                                    self.note('Check MangaDex chapter ID %s' % comic_chapter.id)
+
+                                    comic_chapter_nv, comic_chapter_exist = self.__manga_chapter(
+                                        comic_code,
+                                        comic_chapter
+                                    )
+
+                                    self.note("MangaDex chapter ID %s check complete" % comic_chapter.id)
+
+                                    if comic_chapter_nv or not comic_chapter_exist:
+                                        total_comic_chapter += 1
+                                        time.sleep(5)
+
+                                page1 += 1
+                                time.sleep(3)
+
+                        self.note("MangaDex manga ID %s check complete" % manga.id)
+                        self.note()
+
+                        if comic_code and not comic_exist:
+                            total_comic += 1
+                            time.sleep(5)
 
             page += 1
             time.sleep(3)
